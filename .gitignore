@@ -1,0 +1,61 @@
+# Xcode
+*.xcodeproj
+*.xcworkspace
+!default.xcworkspace
+*.xcuserstate
+*.xcuserdatad
+*.xccheckout
+*.moved-aside
+DerivedData/
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Swift Package Manager
+.build/
+Packages/
+Package.pins
+Package.resolved
+*.swiftpm
+
+# CocoaPods
+Pods/
+*.podspec
+Podfile.lock
+
+# Carthage
+Carthage/Build/
+
+# fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/**/*.png
+fastlane/test_output
+
+# Code Injection
+iOSInjectionProject/
+
+# macOS
+.DS_Store
+*.swp
+*.swo
+*~
+
+# User-specific files
+*.perspectivev3
+!default.perspectivev3
+
+# Build folders
+build/
+Build/
+
+# Debug files
+*.log
+
+# AppCode
+.idea/
+
+# Temporary files
+*.tmp
+tmp/
