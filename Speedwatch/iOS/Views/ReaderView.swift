@@ -178,7 +178,7 @@ struct ReaderView: View {
         }
     }
 
-    private var saveCounter = 0
+    @State private var saveCounter = 0
     private func savePositionPeriodically() {
         saveCounter += 1
         if saveCounter >= 50 {

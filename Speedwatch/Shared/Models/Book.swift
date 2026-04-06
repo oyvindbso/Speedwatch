@@ -15,7 +15,13 @@ public class Book: NSManagedObject {
 }
 
 extension Book {
-    static func create(in context: NSManagedObjectContext, title: String, author: String?, filePath: String, totalWords: Int) -> Book {
+    static func create(
+        in context: NSManagedObjectContext,
+        title: String,
+        author: String?,
+        filePath: String,
+        totalWords: Int
+    ) -> Book {
         let book = Book(context: context)
         book.id = UUID()
         book.title = title
@@ -31,20 +37,14 @@ extension Book {
         guard totalWords > 0 else { return 0 }
         return Double(currentPosition) / Double(totalWords)
     }
-}
 
-struct BookInfo: Codable, Identifiable {
-    let id: UUID
-    let title: String
-    let author: String?
-    let currentPosition: Int
-    let totalWords: Int
-
-    init(from book: Book) {
-        self.id = book.id
-        self.title = book.title
-        self.author = book.author
-        self.currentPosition = Int(book.currentPosition)
-        self.totalWords = Int(book.totalWords)
+    var bookInfo: BookInfo {
+        BookInfo(
+            id: id,
+            title: title,
+            author: author,
+            currentPosition: Int(currentPosition),
+            totalWords: Int(totalWords)
+        )
     }
 }
