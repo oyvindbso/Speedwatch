@@ -1,223 +1,140 @@
-# Speedwatch - Xcode Setup Guide
+# Speedwatch – Setup Guide
 
-This guide will walk you through setting up the Speedwatch project in Xcode.
+## Why Xcode can't build the project yet
 
-## Step-by-Step Setup
+The repository contains Swift source files but **no `.xcodeproj`** — that's what Xcode needs to know how to build the app.  
+The easiest way to generate it is with **XcodeGen**, a free CLI tool.
 
-### 1. Create the Xcode Project
+---
 
-1. Open Xcode
-2. Click "Create a new Xcode project"
-3. Select "iOS" > "App"
-4. Configure the project:
-   - **Product Name**: Speedwatch
-   - **Team**: Select your development team
-   - **Organization Identifier**: com.yourname (or your preferred identifier)
-   - **Bundle Identifier**: com.yourname.speedwatch
-   - **Interface**: SwiftUI
-   - **Language**: Swift
-   - **Storage**: Core Data (check this box)
-   - **Include Tests**: Optional
-5. Choose a location (use this repository folder)
+## Step 1 – Install XcodeGen
 
-### 2. Add watchOS Target
+If you have Homebrew:
 
-1. In Xcode, click File > New > Target
-2. Select "watchOS" > "Watch App for iOS App"
-3. Configure:
-   - **Product Name**: Speedwatch Watch App
-   - **Bundle Identifier**: com.yourname.speedwatch.watchkitapp
-4. Click Finish
+```bash
+brew install xcodegen
+```
 
-### 3. Add Source Files
+No Homebrew? Install it directly:
 
-#### For iOS Target:
+```bash
+mint install yonaskolb/XcodeGen
+```
 
-1. Delete the default `ContentView.swift` and `SpeedwatchApp.swift` files created by Xcode
-2. Right-click on the Speedwatch folder in Xcode > Add Files to "Speedwatch"
-3. Add these folders/files:
-   - `Speedwatch/iOS/` (all files)
-   - `Speedwatch/Shared/` (all files - make sure to select both iOS and Watch targets)
-4. Ensure target membership is correct:
-   - iOS files: iOS target only
-   - Shared files: Both iOS and Watch targets
+Or download a release binary from https://github.com/yonaskolb/XcodeGen/releases
 
-#### For Watch Target:
+---
 
-1. Delete default watch app files
-2. Add files from `Speedwatch/Watch/` directory
-3. Ensure Shared files are also included in Watch target
+## Step 2 – Generate the Xcode project
 
-### 4. Configure Core Data
+Open Terminal, `cd` to the folder that contains `project.yml`, then run:
 
-1. Delete the default `.xcdatamodeld` file created by Xcode
-2. Add the `Speedwatch.xcdatamodeld` from `Shared/Persistence/`
-3. Ensure it's included in both targets
-4. Select the model file
-5. In the File Inspector, check both "Speedwatch" and "Speedwatch Watch App" under Target Membership
+```bash
+xcodegen generate
+```
 
-### 5. Configure Signing & Capabilities
+This creates `Speedwatch.xcodeproj` in the same folder.  
+Open it in Xcode:
 
-#### iOS App:
+```bash
+open Speedwatch.xcodeproj
+```
 
-1. Select the Speedwatch project
-2. Select "Speedwatch" target
-3. Go to "Signing & Capabilities" tab
-4. **Signing**:
-   - Automatically manage signing: ✓
-   - Team: Select your team
+---
 
-5. **Add Capabilities** (click + button):
-   - **iCloud**:
-     - Services: CloudKit ✓
-     - Containers: Add "iCloud.com.speedwatch.library" (or use your own identifier)
-   - **Background Modes** (if needed):
-     - Background fetch ✓
+## Step 3 – Configure Signing
 
-6. **Entitlements**:
-   - Use the provided `Speedwatch.entitlements` file
-   - Or ensure iCloud containers match
+1. In Xcode, click the **Speedwatch** project in the left sidebar.
+2. Select the **Speedwatch** target → **Signing & Capabilities**.
+3. Check **Automatically manage signing** and choose your Apple ID / Team.
+4. Repeat for the **SpeedwatchWatchApp** target.
 
-#### Watch App:
+---
 
-1. Select "Speedwatch Watch App" target
-2. Configure signing with same team
-3. No additional capabilities needed for basic functionality
+## Step 4 – Enable iCloud / CloudKit
 
-### 6. Configure Info.plist
+1. Still in **Signing & Capabilities**, click **+ Capability**.
+2. Add **iCloud**.
+3. Under **Services**, check **CloudKit**.
+4. Under **Containers**, click **+** and add: `iCloud.com.speedwatch.library`  
+   (or use the default one Xcode offers — just keep it consistent).
 
-1. Replace or merge the default Info.plist files with the provided ones:
-   - `Speedwatch/iOS/Info.plist` for iOS
-   - `Speedwatch/Watch/Info.plist` for Watch
-2. Ensure EPUB file type is properly declared in iOS Info.plist
+> **Note:** CloudKit requires a paid Apple Developer account ($99/year).  
+> If you only want to test locally (no sync), you can skip this step and remove  
+> `NSPersistentCloudKitContainer` references from `DataController.swift`.
 
-### 7. Add Assets
+---
 
-1. In the iOS target, create/use Assets.xcassets
-2. Add an AppIcon (use SF Symbols "books.vertical" or design your own)
-3. Add a LaunchScreen.storyboard or use default
+## Step 5 – Build & Run
 
-4. In the Watch target, create Watch Assets.xcassets
-5. Add Watch App Icon (required in multiple sizes)
+### iOS App
+1. Select the **Speedwatch** scheme (top toolbar).
+2. Choose an iPhone simulator or your physical iPhone.
+3. Press **⌘R**.
 
-### 8. Fix Build Issues
+### Apple Watch App
+1. Select the **SpeedwatchWatchApp** scheme.
+2. Choose a Watch simulator **paired** with an iOS simulator  
+   *(Window → Devices and Simulators to check pairing)*.
+3. Press **⌘R**.
 
-Common issues and solutions:
+---
 
-**Issue**: Missing Book entity
-- **Fix**: Ensure Core Data model is in both targets
+## Adding books
 
-**Issue**: WatchConnectivity not found
-- **Fix**: Add WatchConnectivity framework to both targets
-  - Select target > Build Phases > Link Binary With Libraries > Add WatchConnectivity.framework
+1. Tap **+** in the library.
+2. Pick any `.epub` file from Files.
+3. The app parses it and adds it to your library.
 
-**Issue**: CloudKit errors
-- **Fix**: Ensure you're signed in with an Apple Developer account and iCloud is configured
+Free EPUB books are available at [Project Gutenberg](https://www.gutenberg.org).
 
-**Issue**: EPUB import not working
-- **Fix**: Check Info.plist has correct UTImportedTypeDeclarations for EPUB
-
-### 9. Update Bundle Identifiers
-
-If you used different bundle identifiers:
-
-1. In `WatchConnectivityManager.swift`:
-   - Update CloudKit container identifier if changed
-
-2. In Watch `Info.plist`:
-   - Update `WKCompanionAppBundleIdentifier` to match iOS bundle ID
-
-### 10. Configure CloudKit Dashboard
-
-1. Go to [CloudKit Dashboard](https://icloud.developer.apple.com/dashboard)
-2. Select your container (iCloud.com.speedwatch.library)
-3. The schema will be created automatically when you first run the app
-4. Ensure "Development" and "Production" environments are properly configured
-
-### 11. Test Build
-
-1. Select the iOS scheme
-2. Choose a simulator or device
-3. Build (⌘B) to check for errors
-4. Run (⌘R) to test the app
-
-5. Select the Watch scheme
-6. Choose a paired Watch simulator
-7. Build and run
-
-## Development Workflow
-
-### Testing on Simulator
-
-1. **iOS Simulator**:
-   - Use File > Import to test EPUB import
-   - You'll need to drag EPUB files into the simulator
-
-2. **Watch Simulator**:
-   - Must be paired with an iOS simulator
-   - Use Window > Devices and Simulators to manage pairing
-
-### Testing on Device
-
-1. **iOS Device**:
-   - Connect iPhone via USB
-   - Trust computer and select device in Xcode
-   - Run the app
-
-2. **Apple Watch**:
-   - Must be paired with the iPhone
-   - Watch must be on same WiFi network
-   - May need to enable "Enable Developer Mode on Watch" in iOS Settings
-
-### CloudKit Testing
-
-- **Development**: Use while testing, data is separate from production
-- **Production**: Only use when ready to release
-- Clear CloudKit data: CloudKit Dashboard > Data > Public/Private > Reset
+---
 
 ## Troubleshooting
 
-### App won't build:
-- Clean Build Folder (⌘⇧K)
-- Delete DerivedData: Xcode > Preferences > Locations > DerivedData > Click arrow > Delete folder
-- Restart Xcode
+| Problem | Solution |
+|---|---|
+| `xcodegen: command not found` | Re-run the install command, or restart Terminal |
+| "No signing certificate" error | Sign in to Xcode with your Apple ID (Xcode → Settings → Accounts) |
+| CloudKit errors at launch | Sign into iCloud on the simulator/device, or disable CloudKit (see Step 4 note) |
+| Watch app not appearing | The Watch simulator must be paired with the iOS simulator you're running |
+| Build error: missing package | Xcode should auto-resolve SPM packages; if not, File → Packages → Resolve |
 
-### Watch app won't install:
-- Unpair and re-pair Watch with iPhone
-- Enable Developer Mode on Watch: Settings > Privacy > Developer Mode
-- Check Watch has enough storage
+---
 
-### CloudKit sync not working:
-- Sign in to iCloud on device
-- Check internet connection
-- Verify container identifier matches
-- Check CloudKit Dashboard for errors
+## Re-generating after code changes
 
-### EPUB import fails:
-- Ensure EPUB file is valid (test with another EPUB reader)
-- Check file isn't DRM-protected
-- Verify Info.plist has correct EPUB type declaration
+If you add new files, run `xcodegen generate` again — it's fast and non-destructive.  
+Your signing settings are preserved in `project.yml`.
 
-## Additional Resources
+---
 
-- [Apple CloudKit Documentation](https://developer.apple.com/documentation/cloudkit)
-- [WatchConnectivity Framework](https://developer.apple.com/documentation/watchconnectivity)
-- [Core Data with CloudKit](https://developer.apple.com/documentation/coredata/mirroring_a_core_data_store_with_cloudkit)
-- [SwiftUI Tutorials](https://developer.apple.com/tutorials/swiftui)
+## File structure reference
 
-## Next Steps
-
-After setup:
-
-1. Test EPUB import with sample files
-2. Test reading experience at various speeds
-3. Test sync between iPhone and Watch
-4. Customize colors, icons, and branding
-5. Add additional features from README
-
-## Support
-
-For issues or questions:
-- Check the README.md for feature documentation
-- Review Apple's official documentation
-- Check console logs for specific error messages
+```
+Speedwatch/
+├── project.yml               ← XcodeGen config (generates the .xcodeproj)
+├── Speedwatch/
+│   ├── iOS/                  ← iPhone app source (iOS target only)
+│   │   ├── SpeedwatchApp.swift
+│   │   ├── EPUBParser.swift
+│   │   ├── Info.plist
+│   │   ├── Speedwatch.entitlements
+│   │   └── Views/
+│   ├── Watch/                ← Watch app source (watchOS target only)
+│   │   ├── SpeedwatchWatchApp.swift
+│   │   ├── Info.plist
+│   │   ├── Views/
+│   │   ├── Models/
+│   │   └── Services/
+│   └── Shared/               ← Code compiled into both targets
+│       ├── Models/
+│       │   ├── BookInfo.swift   (Codable struct – shared)
+│       │   └── Book.swift       (NSManagedObject – iOS only via project.yml)
+│       ├── Persistence/
+│       │   ├── DataController.swift
+│       │   └── Speedwatch.xcdatamodeld/
+│       └── Services/
+│           ├── WatchConnectivityManager.swift
+│           └── NotificationNames.swift
+```
